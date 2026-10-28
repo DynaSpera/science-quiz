@@ -1,0 +1,6 @@
+project_id = "science-quiz"
+
+[functions.quiz-api]
+# 학생 비로그인 요청과 교사 JWT 요청을 동일한 함수에서 처리합니다.
+# 교사 JWT는 함수 내에서 매번 auth.getUser로 검증하고 teacher_accounts 권한을 확인합니다.
+verify_jwt = false

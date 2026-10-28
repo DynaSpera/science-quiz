@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#173947" />
+  <meta name="description" content="중학교 과학 퀴즈와 문항 분석을 한 곳에서" />
+  <title>과학실 | 퀴즈 & 문항 분석</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="./config.js"></script>
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+ <div class="site-shell">
+   <header class="topbar">
+     <div class="brand"><span class="brand-mark">✳</span><div><strong>과학실<span class="brand-dot">.</span></strong><small>SCIENCE LEARNING LAB</small></div></div>
+     <nav class="topnav" aria-label="메인 메뉴">
+       <button id="nav-student" class="nav-button selected" type="button">학생 퀴즈</button>
+       <button id="nav-teacher" class="nav-button" type="button">교사 분석실</button>
+     </nav>
+     <span id="connection-status" class="connection-pill">연결 확인 중</span>
+   </header>
+   <main>
+    <section id="student-page" class="page">
+      <div class="page-intro"><p class="eyebrow">SCIENCE PRACTICE</p><h1>생각하고, 선택하고,<br><span>과학을 이해하는 시간.</span></h1><p class="lead">문제를 풀고 나의 이해도를 확인하세요. 결과는 퀴즈가 끝나면 자동 제출됩니다.</p></div>
+      <div id="demo-banner" class="notice hidden" role="status"><strong>체험 모드</strong> · 현재 데이터는 이 브라우저에만 저장됩니다. 교사용 DB에 제출되지 않습니다.</div>
+      <section id="student-setup" class="panel setup-panel" aria-labelledby="setup-heading">
+        <div class="panel-heading"><div><p class="overline">01 / 시작 준비</p><h2 id="setup-heading">오늘의 과학 퀴즈</h2><p>학습 범위와 문제 수를 선택하세요.</p></div><div class="panel-icon">⌁</div></div>
+        <form id="quiz-form" class="form-grid">
+          <div class="field"><label for="student-name">이름 또는 별칭</label><input id="student-name" maxlength="40" placeholder="예: 김가은" required autocomplete="off" /></div>
+          <div class="field"><label for="student-code">학번 <span class="muted">(선택)</span></label><input id="student-code" maxlength="24" placeholder="예: 10203" autocomplete="off" /></div>
+          <div class="field"><label for="unit-select">단원</label><select id="unit-select"><option value="all">전체 단원</option></select></div>
+          <div class="field"><label for="difficulty-select">난이도</label><select id="difficulty-select"><option value="all">전체 난이도</option><option value="쉬움">쉬움</option><option value="보통">보통</option><option value="어려움">어려움</option></select></div>
+          <div class="field"><label for="count-select">문항 수</label><select id="count-select"><option value="5">5문항</option><option value="10" selected>10문항</option><option value="15">15문항</option><option value="20">20문항</option><option value="30">30문항</option></select></div>
+          <div class="field"><label for="quiz-code">수업 참여 코드 <span class="muted">(실제 운영 시 필수)</span></label><input type="password" id="quiz-code" autocomplete="off" placeholder="설정된 경우 입력" /></div>
+          <div class="form-footer"><p class="privacy-note">학습 결과 확인에 필요한 최소한의 정보만 입력하세요. 실명 사용 시 학교의 개인정보 처리 기준을 따릅니다.</p><button type="submit" id="start-button" class="primary-button">퀴즈 시작 <span aria-hidden="true">↗</span></button></div>
+        </form>
+      </section>
+      <section id="quiz-stage" class="panel quiz-panel hidden" aria-labelledby="quiz-title">
+        <div class="quiz-meta"><span class="eyebrow">QUESTION <span id="question-number">01</span></span><span id="question-unit" class="unit-tag"></span></div>
+        <div class="progress-track" role="progressbar" id="progress-track" aria-valuemin="0" aria-valuemax="100"><div id="progress-fill"></div></div>
+        <h2 id="quiz-title" class="question-title"></h2>
+        <p id="question-difficulty" class="muted"></p>
+        <div id="option-list" class="option-list" role="radiogroup" aria-label="정답 선택"></div>
+        <p id="quiz-error" class="error-text" role="alert"></p>
+        <div class="quiz-footer"><span id="question-progress">1 / 10</span><button id="next-button" class="primary-button">다음 문제 →</button></div>
+      </section>
+      <section id="result-stage" class="panel result-panel hidden" aria-labelledby="result-title"><p class="overline">퀴즈 완료</p><div class="result-header"><div><h2 id="result-title">오늘의 학습 결과</h2><p id="submission-message"></p></div><div id="result-score" class="big-score">—</div></div><div id="result-metrics" class="metric-row"></div><div class="actions-row"><button id="download-result" class="secondary-button">개인 결과 CSV 받기</button><button id="retry-button" class="primary-button">다시 학습하기</button></div><h3 class="subheading">문항별 해설</h3><div id="review-list" class="review-list"></div></section>
+    </section>
+    <section id="teacher-page" class="page hidden">
+      <div class="page-intro admin-intro"><p class="eyebrow">TEACHER STUDIO</p><h1>데이터로 보는<br><span>우리 반의 과학.</span></h1><p class="lead">학생들의 학습 기록을 수집하고 문항별로 분석합니다.</p></div>
+      <section id="teacher-login" class="panel auth-panel"><div class="panel-heading"><div><p class="overline">교사 전용</p><h2>관리자 로그인</h2><p>Supabase Auth로 인증합니다.</p></div><div class="panel-icon">♙</div></div><form id="login-form" class="form-stack"><div class="field"><label for="teacher-email">이메일</label><input id="teacher-email" type="email" autocomplete="username" placeholder="teacher@example.com" required /></div><div class="field"><label for="teacher-password">비밀번호</label><input id="teacher-password" type="password" autocomplete="current-password" required /></div><button id="login-button" class="primary-button" type="submit">관리자 로그인</button></form><button id="demo-login" class="text-button hidden" type="button">샘플 데이터로 관리자 체험하기</button><p id="login-error" class="error-text" role="alert"></p></section>
+      <section id="admin-workspace" class="hidden">
+       <div class="workspace-bar"><div><span class="overline">관리 대시보드</span><h2>학습 현황 및 문항 분석</h2></div><div class="actions-row"><button id="refresh-report" class="secondary-button">↻ 새로고침</button><button id="logout-button" class="secondary-button">로그아웃</button></div></div>
+       <div class="tab-bar" role="tablist"><button class="tab active" data-admin-tab="dashboard" role="tab" aria-selected="true">전체 요약</button><button class="tab" data-admin-tab="items" role="tab" aria-selected="false">문항 분석</button><button class="tab" data-admin-tab="students" role="tab" aria-selected="false">학생별 결과</button><button class="tab" data-admin-tab="bank" role="tab" aria-selected="false">문제은행 관리</button></div>
+       <div id="admin-dashboard" class="admin-pane"><div id="summary-cards" class="stats-grid"></div><div class="grid-two"><div class="panel chart-panel"><h3>단원별 성취율</h3><div id="unit-bars" class="bar-list"></div></div><div class="panel chart-panel"><h3>정답률이 낮은 문항</h3><div id="hard-items" class="compact-list"></div></div></div><div class="panel"><div class="table-heading"><h3>최근 제출 현황</h3><button id="export-scores" class="secondary-button">성적 CSV</button></div><div class="table-wrap"><table><thead><tr><th>제출 시각</th><th>학생</th><th>점수</th><th>정답</th><th>백분율</th></tr></thead><tbody id="recent-table"></tbody></table></div></div></div>
+       <div id="admin-items" class="admin-pane hidden"><div class="panel"><div class="table-heading"><div><h3>문항별 분석</h3><p class="muted">정답률은 해당 문항을 실제 받은 응시자만 분모로 계산합니다.</p></div><button id="export-items" class="secondary-button">문항 분석 CSV</button></div><div class="table-wrap"><table><thead><tr><th>문항ID</th><th>단원</th><th>출제 인원</th><th>정답률</th><th>난이도</th><th>변별도</th><th>상하위 정답률 차</th></tr></thead><tbody id="item-table"></tbody></table></div></div><div class="panel"><div class="table-heading"><h3>오답 선택 분석</h3><button id="export-choices" class="secondary-button">오답 분석 CSV</button></div><div class="table-wrap"><table><thead><tr><th>문항ID</th><th>선택 답안</th><th>정오</th><th>선택 인원</th><th>선택률</th></tr></thead><tbody id="choice-table"></tbody></table></div></div></div>
+       <div id="admin-students" class="admin-pane hidden"><div class="panel"><div class="table-heading"><div><h3>응시자별 분석</h3><p class="muted">중복 응시는 선택한 기준으로 표시합니다.</p></div><div class="actions-row"><select id="attempt-policy" aria-label="중복 응시 정책"><option value="latest">최근 응시만</option><option value="highest">최고점만</option><option value="all">전체 응시</option></select><button id="export-responses" class="secondary-button">상세 응답 CSV</button></div></div><div class="table-wrap"><table><thead><tr><th>학생</th><th>제출 시각</th><th>점수</th><th>만점</th><th>백분율</th><th>정답 수</th><th>성취수준</th></tr></thead><tbody id="student-table"></tbody></table></div></div></div>
+       <div id="admin-bank" class="admin-pane hidden"><div class="panel"><p class="overline">문제은행</p><h3>Excel 문제은행 업로드</h3><p class="muted">기존 Excel 파일의 <code>문제은행</code> 시트를 가져옵니다. 동일 문항ID는 덮어씁니다. 이미 제출한 결과는 유지됩니다.</p><div class="upload-area"><input id="bank-file" type="file" accept=".xlsx,.xls,.csv" /><button id="import-button" class="primary-button">문항 등록·갱신</button></div><p class="muted">열 이름: 문항ID, 단원, 난이도, 문제, 선택지1~5, 정답번호, 해설, 배점</p><div class="actions-row"><button id="load-bank" class="secondary-button">등록 문항 조회</button><button id="export-bank" class="secondary-button">문제은행 CSV 내보내기</button></div><div id="bank-feedback" class="notice hidden"></div><div class="table-wrap"><table><thead><tr><th>문항ID</th><th>단원</th><th>난이도</th><th>문제</th><th>배점</th><th>상태</th><th>변경</th></tr></thead><tbody id="bank-table"></tbody></table></div></div></div>
+       <div id="admin-error" class="error-text" role="alert"></div>
+      </section>
+    </section>
+   </main>
+   <footer class="footer"><span>✳ 과학실 · SCIENCE LEARNING LAB</span><span>작은 질문에서 시작하는 큰 발견</span></footer>
+ </div>
+ <div id="toast" class="toast hidden" role="status"></div>
+</body>
+</html>
